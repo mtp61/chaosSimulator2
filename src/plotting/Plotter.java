@@ -82,11 +82,12 @@ public abstract class Plotter {
 		final long endTime = System.currentTimeMillis();
 		double execTime = (double) (endTime - startTime) / 1000;
 		double timePerPoint = execTime / numPoints;
-		System.out.printf("plotting took: %d s, %.4f s per point\n", (int) execTime, timePerPoint);
+		System.out.printf("plotting took: %d s, %.5f s per point\n", (int) execTime, timePerPoint);
 		
 		// write data
 		PrintWriter writer;
-		String filename = String.format("%s-%d-%d", Magnet.magnetHash(magnets), resX, resY);
+		String filename = String.format("%s_%d_%d_%d_%d_%d_%d",
+				Magnet.magnetHash(magnets), minX, maxX, minY, maxY, resX, resY);
 		try {
 			writer = new PrintWriter(String.format("output/%s.txt", filename),"UTF-8");
 			for (int j = 0; j < numPoints / numThreads; ++j) {

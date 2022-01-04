@@ -2,6 +2,7 @@ package plotting;
 
 import java.util.ArrayList;
 
+import simulation.ListElement;
 import simulation.Magnet;
 import simulation.World;
 
@@ -11,7 +12,7 @@ public class Generator extends Thread {
 	
 	public double[][] output;
 	
-	private int maxTicks = 100000;
+	private static final int maxTicks = 100000;
 	
 	private World world; 
 	
@@ -42,50 +43,47 @@ public class Generator extends Thread {
 
 		// plot points
 		double finalX, finalY;
-		int[] tickCounter = new int[numPoints];
-
+		int tickCounter;
+		
 		for (int i = 0; i < numPoints; ++i) {
 			// print expected time
 			if (i % 1000 == 0 && i != 0) {
-				long timeNow = System.currentTimeMillis();
-				long timeElapsed = timeNow - startTime;
-				double percentDone = ((double) i / numPoints);
-				long predictedTime = (long) (timeElapsed/percentDone)-timeElapsed;
-				int predictedTimeSeconds = ((int) predictedTime)/1000;
-				
-				System.out.printf("Thread %d: %d / %d, %ds remaining\n", threadNum, i, numPoints, predictedTimeSeconds);			
+				double secRemaining = (double) (System.currentTimeMillis() - startTime) / 1000
+						* ((double) numPoints / i- 1);
+                double minRemaining = Math.floor(secRemaining / 60);
+                double hourRemaining = Math.floor(minRemaining / 60);
+                secRemaining -= 60 * minRemaining;
+                minRemaining -= 60 * hourRemaining;      
+				System.out.printf("Thread %d: %d / %d, %.0f h %.0f m %.0f s remaining\n",
+						threadNum, i, numPoints, hourRemaining, minRemaining, secRemaining);			
 			}
 
 			world.resetWorld(points[i][0], points[i][1], 0, 0);			
-			tickCounter[i] = 0;
+			tickCounter = 0;
 			
 			while (true) {
 				world.tick(tickrate);
-				++tickCounter[i];
+				++tickCounter;
 				
-				if (tickCounter[i] > maxTicks) {
+				if (tickCounter > maxTicks) {
 					System.out.println("error: max ticks hit");
 					System.out.println(world.getArmX());
 					System.out.println(world.getArmX());
-					
 					finalX = 1000000;
 					finalY = 1000000;
 					break;
 				}
 				
 				if (world.getStopped()) {
-					double totalX = 0;
-					double totalY = 0;
-					for (int j = 0; j < world.getPosArrayX().length; ++j) {
-						totalX += world.getPosArrayX()[j];
-						totalY += world.getPosArrayY()[j];
+					finalX = 0;
+					finalY = 0;
+					for (ListElement point : world.getPosArray()) {
+						finalX += point.x;
+						finalY += point.y;
 					}
 
-					finalX = totalX / world.getPosArrayX().length;
-					finalY = totalY / world.getPosArrayX().length;
-					
-//					finalX = world.getArmX();
-//					finalY = world.getArmY();
+					finalX /= world.getPosArray().size();
+					finalY /= world.getPosArray().size();
 
 					break;
 				}

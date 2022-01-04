@@ -23,7 +23,6 @@ public class Magnet implements Serializable {
 	
 	public static String magnetHash(ArrayList<Magnet> magnets) {
 		Gson gson = new Gson();
-//		String hash = Integer.toHexString(magnets.hashCode()); 
 		String hash = Integer.toHexString(gson.toJson(magnets).hashCode()); 
 		return hash.substring(0, Math.min(6, hash.length()));
 	}
