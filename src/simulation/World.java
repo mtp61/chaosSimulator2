@@ -1,6 +1,7 @@
 package simulation;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 
 public class World {
 
@@ -24,10 +25,13 @@ public class World {
 
 	// stopping
 	private boolean stopped = false;
-	private double maxStopDist = 15;
-	private int posArraySize = 1000;
-	private double[] posArrayX = new double[posArraySize];
-	private double[] posArrayY = new double[posArraySize];
+	private double maxStopDist = 25; // 15
+	private int posArraySize = 50; // 500, 1000
+//	private double[] posArrayX = new double[posArraySize];
+//	private double[] posArrayY = new double[posArraySize];
+	private LinkedList<ListElement> posArray = new LinkedList<ListElement>();
+	private static final int checkEvery = 10;
+	private int tickCounter = 0;
 	
 	private ArrayList<Magnet> magnets = new ArrayList<Magnet>();
 	
@@ -43,10 +47,13 @@ public class World {
 		this.stopped = false;
 		
 		// initialize pos array
-		for (int i = 0; i < this.posArraySize; ++i) {
-			this.posArrayX[i] = i * 10;
-			this.posArrayY[i] = i * 10;
-		}
+		posArray.clear(); 
+//		for (int i = 0; i < this.posArraySize; ++i) {
+//			this.posArrayX[i] = i * 10;
+//			this.posArrayY[i] = i * 10;
+//		}
+		
+		tickCounter = 0;
 	}
 	
 	public void resetWorld() {
@@ -69,33 +76,74 @@ public class World {
 		this.velX *= 1 - ((1 - this.friction) / tickrate); // TODO this is not right
 		this.velY *= 1 - ((1 - this.friction) / tickrate);
 		
+		// TODO pos array could only hold every 5 or so points
+
 		// check if stopped
-		double maxX = this.posArrayX[0];
-		double minX = this.posArrayX[0];
-		double maxY = this.posArrayY[0];
-		double minY = this.posArrayY[0];
-		// TODO this is inefficient 
-		for (int i = 0; i < this.posArraySize - 1; ++i) { // update vel array
-			this.posArrayX[this.posArraySize - i - 1] = this.posArrayX[this.posArraySize - i - 2];
-			this.posArrayY[this.posArraySize - i - 1] = this.posArrayY[this.posArraySize - i - 2];
-			if (this.posArrayX[this.posArraySize - 1 - i] > maxX) {
-				maxX = this.posArrayX[this.posArraySize - i - 1];
-			} else if (this.posArrayX[this.posArraySize - i - 1] < minX) {
-				minX = this.posArrayX[this.posArraySize - i - 1];
-			}
-			if (this.posArrayY[this.posArraySize - i - 1] > maxY) {
-				maxY = this.posArrayY[this.posArraySize - i - 1];
-			} else if (this.posArrayY[this.posArraySize - i - 1] < minY) {
-				minY = this.posArrayY[this.posArraySize - i - 1];
+		// update pos array
+//		for (int i = 0; i < this.posArraySize - 1; ++i) {
+//			this.posArrayX[this.posArraySize - i - 1] = this.posArrayX[this.posArraySize - i - 2];
+//			this.posArrayY[this.posArraySize - i - 1] = this.posArrayY[this.posArraySize - i - 2];
+//		}
+//		this.posArrayX[0] = this.armX;
+//		this.posArrayY[0] = this.armY;
+		
+		
+		// check if stopped
+//		double maxX = this.posArrayX[0];
+//		double minX = this.posArrayX[0];
+//		double maxY = this.posArrayY[0];
+//		double minY = this.posArrayY[0];
+//		for (int i = 0; i < posArraySize - 1; ++i) {
+//			if (this.posArrayX[this.posArraySize - 1 - i] > maxX) {
+//				maxX = this.posArrayX[this.posArraySize - i - 1];
+//			} else if (this.posArrayX[this.posArraySize - i - 1] < minX) {
+//				minX = this.posArrayX[this.posArraySize - i - 1];
+//			}
+//			if (this.posArrayY[this.posArraySize - i - 1] > maxY) {
+//				maxY = this.posArrayY[this.posArraySize - i - 1];
+//			} else if (this.posArrayY[this.posArraySize - i - 1] < minY) {
+//				minY = this.posArrayY[this.posArraySize - i - 1];
+//			}
+//			
+//			if (maxX - minX >= this.maxStopDist || maxY - minY >= this.maxStopDist) {
+//				break;
+//			}
+//		}	
+//		double dist = Math.sqrt(Math.pow(maxX - minX, 2) + Math.pow(maxY - minY, 2));
+//		this.stopped = dist < this.maxStopDist;
+		
+		// TODO track if a max upender is still in the list
+
+		if (++tickCounter % checkEvery == 0) {
+			posArray.addLast(new ListElement(armX, armY));			
+			if (tickCounter / checkEvery >= posArraySize) {	
+				posArray.removeFirst();
+				
+				double minX = 100000;
+				double maxX = -100000;
+				double minY = 100000;
+				double maxY = -100000;
+				for (ListElement point : posArray) {
+					if (point.x < minX) {
+						minX = point.x;
+					} else if (point.x > maxX) {
+						maxX = point.x;
+					}
+					if (point.y < minY) {
+						minY = point.y;
+					} else if (point.y > maxY) {
+						maxY = point.y;
+					}
+					
+					if (maxX - minX >= this.maxStopDist || maxY - minY >= this.maxStopDist) {
+						stopped = false;
+						return;
+					}
+				}
+				this.stopped = Math.sqrt(Math.pow(maxX - minX, 2) + Math.pow(maxY - minY, 2)) 
+						< this.maxStopDist;
 			}
 		}
-
-		this.posArrayX[0] = this.armX;
-		this.posArrayY[0] = this.armY;
-		
-		double dist = Math.sqrt(Math.pow(maxX - minX, 2) + Math.pow(maxY - minY, 2));
-		
-		this.stopped = dist < this.maxStopDist;
 	}
 	
 	private double[] acceleration() {		
@@ -151,9 +199,29 @@ public class World {
 	public ArrayList<Magnet> getMagnets() { return magnets; }
 	public boolean getStopped() { return stopped; }
 	public int getPosArraySize() { return posArraySize; }
-	public double[] getPosArrayX() { return posArrayX; }
-	public double[] getPosArrayY() { return posArrayY; }
+//	public double[] getPosArrayX() { return posArrayX; }
+//	public double[] getPosArrayY() { return posArrayY; }
 	
+	public double[] getPosArrayX() {
+		double a[] = new double[posArray.size()];
+		int i = 0;
+		for (ListElement point : posArray) {
+			a[i] = point.x;
+			++i;
+		}
+		return a;
+	}
+	
+	public double[] getPosArrayY() {
+		double a[] = new double[posArray.size()];
+		int i = 0;
+		for (ListElement point : posArray) {
+			a[i] = point.y;
+			++i;
+		}
+		return a;
+	}
+
 	public void setArmX(double armX) { this.armX = armX; }
 	public void setArmY(double armY) { this.armY = armY; }
 	public void setVelX(double velX) { this.velX = velX; }

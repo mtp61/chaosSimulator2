@@ -46,7 +46,7 @@ public class Generator extends Thread {
 
 		for (int i = 0; i < numPoints; ++i) {
 			// print expected time
-			if (i % 100 == 0 && i != 0) {
+			if (i % 1000 == 0 && i != 0) {
 				long timeNow = System.currentTimeMillis();
 				long timeElapsed = timeNow - startTime;
 				double percentDone = ((double) i / numPoints);
@@ -76,13 +76,13 @@ public class Generator extends Thread {
 				if (world.getStopped()) {
 					double totalX = 0;
 					double totalY = 0;
-					for (int j = 0; j < world.getPosArraySize(); ++j) {
+					for (int j = 0; j < world.getPosArrayX().length; ++j) {
 						totalX += world.getPosArrayX()[j];
 						totalY += world.getPosArrayY()[j];
 					}
 
-					finalX = totalX / world.getPosArraySize();
-					finalY = totalY / world.getPosArraySize();
+					finalX = totalX / world.getPosArrayX().length;
+					finalY = totalY / world.getPosArrayX().length;
 					
 //					finalX = world.getArmX();
 //					finalY = world.getArmY();

@@ -27,7 +27,7 @@ public abstract class Plotter {
 	private final static int defaultResX = 40;
 	private final static int defaultResY = 40;
 	
-	private final static int binSize = 20;
+	private final static int binSize = 40;
 	private final static Color[] colors = { 
 			Color.BLACK, Color.RED, Color.GREEN, Color.BLUE,
 			Color.MAGENTA, Color.ORANGE };

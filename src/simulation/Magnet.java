@@ -3,6 +3,8 @@ package simulation;
 import java.io.Serializable;
 import java.util.ArrayList;
 
+import com.google.gson.Gson;
+
 public class Magnet implements Serializable {
 	
 	private static final long serialVersionUID = 1L;
@@ -20,7 +22,9 @@ public class Magnet implements Serializable {
 	}
 	
 	public static String magnetHash(ArrayList<Magnet> magnets) {
-		String hash = Integer.toHexString(magnets.hashCode()); 
+		Gson gson = new Gson();
+//		String hash = Integer.toHexString(magnets.hashCode()); 
+		String hash = Integer.toHexString(gson.toJson(magnets).hashCode()); 
 		return hash.substring(0, Math.min(6, hash.length()));
 	}
 	
