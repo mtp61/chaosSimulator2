@@ -145,11 +145,17 @@ public class Panel extends JPanel {
                     return;
                 // plot
                 case KeyEvent.VK_P:
-                    System.out.println("plotting...");
+                    // get the name
+                    String file = overlay.getFile();
+                    if (file.length() == 0) {
+                        file = Magnet.magnetHash(world.getMagnets());
+                    }
+
                     Plotter.plot(world.getMagnets(), 
                             overlay.getMinX(), overlay.getMaxX(),
                             overlay.getMinY(), overlay.getMaxY(),
-                            overlay.getResX(), overlay.getResY());
+                            overlay.getResX(), overlay.getResY(),
+                            file, true);
                     return;
                 // quit
                 case KeyEvent.VK_Q:

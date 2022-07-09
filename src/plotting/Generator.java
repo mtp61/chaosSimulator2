@@ -15,10 +15,12 @@ public class Generator extends Thread {
     private static final int maxTicks = 100000;
     
     private World world; 
+    private boolean verbose;
     
-    public Generator(double[][] points, int threadNum, ArrayList<Magnet> magnets) {
+    public Generator(double[][] points, int threadNum, ArrayList<Magnet> magnets, boolean verbose) {
         this.points = points;
         this.threadNum = threadNum;
+        this.verbose = verbose;
         
         world = new World();
         world.setMagnets(magnets);
@@ -54,8 +56,10 @@ public class Generator extends Thread {
                 double hourRemaining = Math.floor(minRemaining / 60);
                 secRemaining -= 60 * minRemaining;
                 minRemaining -= 60 * hourRemaining;      
-                System.out.printf("Thread %d: %d / %d, %.0f h %.0f m %.0f s remaining\n",
-                        threadNum, i, numPoints, hourRemaining, minRemaining, secRemaining);			
+                if (verbose) {
+                    System.out.printf("Thread %d: %d / %d, %.0f h %.0f m %.0f s remaining\n",
+                            threadNum, i, numPoints, hourRemaining, minRemaining, secRemaining);			
+                }
             }
 
             world.resetWorld(points[i][0], points[i][1], 0, 0);			
@@ -66,9 +70,11 @@ public class Generator extends Thread {
                 ++tickCounter;
                 
                 if (tickCounter > maxTicks) {
-                    System.out.println("error: max ticks hit");
-                    System.out.println(world.getArmX());
-                    System.out.println(world.getArmX());
+                    if (verbose) {
+                        System.out.println("error: max ticks hit");
+                        System.out.println(world.getArmX());
+                        System.out.println(world.getArmX());
+                    }
                     finalX = 1000000;
                     finalY = 1000000;
                     break;
@@ -96,6 +102,8 @@ public class Generator extends Thread {
             output[i][3] = finalY;
         }
 
-        System.out.printf("Thread %d finished\n", threadNum);
+        if (verbose) {
+            System.out.printf("Thread %d finished\n", threadNum);
+        }
     }
 }

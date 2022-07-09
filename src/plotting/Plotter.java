@@ -26,18 +26,22 @@ public abstract class Plotter {
     private final static int defaultMaxY = 400;
     private final static int defaultResX = 40;
     private final static int defaultResY = 40;
-    
+    private final static String defaultFile = "magnets";
+    private final static boolean defaultVerbose = true;
+
     private final static int binSize = 40;
     private final static Color[] colors = { 
             Color.BLACK, Color.RED, Color.GREEN, Color.BLUE,
             Color.MAGENTA, Color.ORANGE };
     
     public static void plot(ArrayList<Magnet> magnets) {
-        plot(magnets, defaultMinX, defaultMaxX, defaultMinY, defaultMaxY, defaultResX, defaultResY);
+        plot(magnets, defaultMinX, defaultMaxX, defaultMinY, defaultMaxY,
+                defaultResX, defaultResY, defaultFile, defaultVerbose);
     }
     
     public static void plot(ArrayList<Magnet> magnets,
-            int minX, int maxX, int minY, int maxY, int resX, int resY) {
+            int minX, int maxX, int minY, int maxY, int resX,
+            int resY, String file, boolean verbose) {
         long startTime = System.currentTimeMillis();
         
         int numPoints = resX * resY;
@@ -54,7 +58,9 @@ public abstract class Plotter {
         }
         
         // create threads 
-        System.out.printf("creating %d threads\n", numThreads);
+        if (verbose) {
+            System.out.printf("creating %d threads\n", numThreads);
+        }
         Generator threadArray[] = new Generator[numThreads];
         for (int i = 0; i < numThreads; ++i) {
             int numThreadPoints = numPoints / numThreads + (i < numPoints % numThreads ? 1 : 0);
@@ -65,7 +71,7 @@ public abstract class Plotter {
                 threadPoints[j][1] = totalPoints[numThreads * j + i][1];
             }
             
-            threadArray[i] = new Generator(threadPoints, i, magnets);
+            threadArray[i] = new Generator(threadPoints, i, magnets, verbose);
             threadArray[i].start();
         }
         
@@ -82,12 +88,12 @@ public abstract class Plotter {
         final long endTime = System.currentTimeMillis();
         double execTime = (double) (endTime - startTime) / 1000;
         double timePerPoint = execTime / numPoints;
-        System.out.printf("plotting took: %d s, %.5f s per point\n", (int) execTime, timePerPoint);
+        System.out.printf("Operation took: %d s, %.5f s per point\n", (int) execTime, timePerPoint);
         
         // write data
         PrintWriter writer;
         String filename = String.format("%s_%d_%d_%d_%d_%d_%d",
-                Magnet.magnetHash(magnets), minX, maxX, minY, maxY, resX, resY);
+                file, minX, maxX, minY, maxY, resX, resY);
         try {
             writer = new PrintWriter(String.format("output/%s.txt", filename),"UTF-8");
             for (int j = 0; j < numPoints / numThreads; ++j) {
@@ -173,12 +179,13 @@ public abstract class Plotter {
         try {
             File f = new File(String.format("plot/%s.png", filename));
             ImageIO.write(bufferedImage, "png", f);
+            System.out.printf("Plot at plot/%s.png\n", filename);
         } catch (IOException e) {
             e.printStackTrace();
         }
         
         // print info
-        System.out.print("bins at: ");
+        System.out.print("Bins at: ");
         for (Point p : bins) {
             System.out.printf("(%d, %d) ", p.x + binSize / 2, p.y + binSize / 2);
         }
