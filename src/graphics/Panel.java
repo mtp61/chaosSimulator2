@@ -51,7 +51,7 @@ public class Panel extends JPanel {
         drawSimulation(g);
         
         // overlay
-        overlay.draw(g, width - overlay.getWidth(), 0, activeBox);
+        overlay.draw(g, width, 0, activeBox);
     }
     
     public void drawSimulation(Graphics g) {
@@ -119,193 +119,74 @@ public class Panel extends JPanel {
     }
     
     public void keyPressed(KeyEvent e) {
-        switch (e.getKeyCode()) {
-            // reset arm
-            case KeyEvent.VK_R:
-                world.resetWorld();
-                break;
-            // clear magnets
-            case KeyEvent.VK_C:
-                world.clearMagnets();
-                break;
-            // pause
-            case KeyEvent.VK_SPACE:
-                paused = !paused;
-                break;
-            // save
-            case KeyEvent.VK_S:
-                saveMagnets();
-                break;
-            // load
-            case KeyEvent.VK_L:
-                loadMagnets();
-                break;
-            // plot
-            case KeyEvent.VK_P:
-                System.out.println("plotting...");
-                Plotter.plot(world.getMagnets(), 
-                        overlay.getMinX(), overlay.getMaxX(),
-                        overlay.getMinY(), overlay.getMaxY(),
-                        overlay.getResX(), overlay.getResY());
-                break;
-            // overlay number
-            case KeyEvent.VK_0:
-                if (activeBox != -1) {
-                    overlay.number(activeBox, 0);
-                }
-                break;
-            case KeyEvent.VK_1:
-                if (activeBox != -1) {
-                    overlay.number(activeBox, 1);
-                }				
-                break;
-            case KeyEvent.VK_2:
-                if (activeBox != -1) {
-                    overlay.number(activeBox, 2);
-                }				
-                break;
-            case KeyEvent.VK_3:
-                if (activeBox != -1) {
-                    overlay.number(activeBox, 3);
-                }				
-                break;
-            case KeyEvent.VK_4:
-                if (activeBox != -1) {
-                    overlay.number(activeBox, 4);
-                }				
-                break;
-            case KeyEvent.VK_5:
-                if (activeBox != -1) {
-                    overlay.number(activeBox, 5);
-                }				
-                break;
-            case KeyEvent.VK_6:
-                if (activeBox != -1) {
-                    overlay.number(activeBox, 6);
-                }				
-                break;
-            case KeyEvent.VK_7:
-                if (activeBox != -1) {
-                    overlay.number(activeBox, 7);
-                }				
-                break;
-            case KeyEvent.VK_8:
-                if (activeBox != -1) {
-                    overlay.number(activeBox, 8);
-                }				
-                break;
-            case KeyEvent.VK_9:
-                if (activeBox != -1) {
-                    overlay.number(activeBox, 9);
-                }				
-                break;
-            case KeyEvent.VK_NUMPAD0:
-                if (activeBox != -1) {
-                    overlay.number(activeBox, 0);
-                }
-                break;
-            case KeyEvent.VK_NUMPAD1:
-                if (activeBox != -1) {
-                    overlay.number(activeBox, 1);
-                }				
-                break;
-            case KeyEvent.VK_NUMPAD2:
-                if (activeBox != -1) {
-                    overlay.number(activeBox, 2);
-                }				
-                break;
-            case KeyEvent.VK_NUMPAD3:
-                if (activeBox != -1) {
-                    overlay.number(activeBox, 3);
-                }				
-                break;
-            case KeyEvent.VK_NUMPAD4:
-                if (activeBox != -1) {
-                    overlay.number(activeBox, 4);
-                }				
-                break;
-            case KeyEvent.VK_NUMPAD5:
-                if (activeBox != -1) {
-                    overlay.number(activeBox, 5);
-                }				
-                break;
-            case KeyEvent.VK_NUMPAD6:
-                if (activeBox != -1) {
-                    overlay.number(activeBox, 6);
-                }				
-                break;
-            case KeyEvent.VK_NUMPAD7:
-                if (activeBox != -1) {
-                    overlay.number(activeBox, 7);
-                }				
-                break;
-            case KeyEvent.VK_NUMPAD8:
-                if (activeBox != -1) {
-                    overlay.number(activeBox, 8);
-                }				
-                break;
-            case KeyEvent.VK_NUMPAD9:
-                if (activeBox != -1) {
-                    overlay.number(activeBox, 9);
-                }				
-                break;
-            // overlay negative
-            case KeyEvent.VK_MINUS:
-                if (activeBox != -1) {
-                    overlay.negative(activeBox);;
-                }
-                break;
-            // overlay delete
-            case KeyEvent.VK_BACK_SPACE:
-                if (activeBox != -1) {
-                    overlay.delete(activeBox);
-                }
-                break;
-            // overlay deselect
-            case KeyEvent.VK_ESCAPE:
+        int keyCode = e.getKeyCode();
+
+        if (activeBox == -1) {
+            switch (keyCode) {
+                // reset arm
+                case KeyEvent.VK_R:
+                    world.resetWorld();
+                    return;
+                // clear magnets
+                case KeyEvent.VK_C:
+                    world.clearMagnets();
+                    return;
+                // pause
+                case KeyEvent.VK_SPACE:
+                    paused = !paused;
+                    return;
+                // save
+                case KeyEvent.VK_S:
+                    saveMagnets();
+                    return;
+                // load
+                case KeyEvent.VK_L:
+                    loadMagnets();
+                    return;
+                // plot
+                case KeyEvent.VK_P:
+                    System.out.println("plotting...");
+                    Plotter.plot(world.getMagnets(), 
+                            overlay.getMinX(), overlay.getMaxX(),
+                            overlay.getMinY(), overlay.getMaxY(),
+                            overlay.getResX(), overlay.getResY());
+                    return;
+                // quit
+                case KeyEvent.VK_Q:
+                    System.exit(0);
+            }
+        } else {
+            // reset active box on escape
+            if (keyCode == KeyEvent.VK_ESCAPE) {
                 activeBox = -1;
-                break;
+                return;
+            }
+
+            overlay.updateBox(activeBox, keyCode);
         }
     }
     
     private void saveMagnets() {
-        try {
-            String hash = Magnet.magnetHash(world.getMagnets()); 
-            
-            FileWriter f = new FileWriter(
-                    String.format("magnets/%s.txt", hash));
-            BufferedWriter b = new BufferedWriter(f);
-            
-            Gson gson = new Gson();					
-            b.write(gson.toJson(world.getMagnets()));
-                        
-            b.close();
-            f.close();
-            
-            System.out.println(
-                    String.format("saved to \"magnets/%s.txt\"", hash));
-        } catch (Exception err) {
-            err.printStackTrace();
+        String file = overlay.getFile();
+
+        // generate a file name if none provided
+        if (file.length() == 0) {
+            file = Magnet.magnetHash(world.getMagnets());
         }
+
+        Magnet.saveMagnets(world.getMagnets(), file);
     }
     
     private void loadMagnets() {
-        try {					
-            FileReader f = new FileReader("magnets/magnets.txt");
-            BufferedReader b = new BufferedReader(f);
-            
-            Gson gson = new Gson();
-            world.setMagnets(gson.fromJson(b.readLine(), 
-                    new TypeToken<ArrayList<Magnet>>(){}.getType()));
-            
-            b.close();
-            f.close();
-            
-            System.out.println("Loaded configuration from \"magnets/magnets.txt\"");
-        } catch (FileNotFoundException err) {
-            System.out.println("File not found");
-        } catch (Exception err) {
-            err.printStackTrace();
+        String file = overlay.getFile();
+        if (file.length() == 0) {
+            System.out.println("No file name specified");
+            return;
+        }
+
+        ArrayList<Magnet> magnets = Magnet.loadMagnets(file);
+        if (magnets != null) {
+            world.setMagnets(magnets);
         }
     }
     

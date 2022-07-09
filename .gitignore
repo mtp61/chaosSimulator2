@@ -1,8 +1,10 @@
 bin/
+lib/
 magnets/
 output/
 plot/
+.vscode/
+.settings/
 .classpath
 .project
-.settings/
 *.sh

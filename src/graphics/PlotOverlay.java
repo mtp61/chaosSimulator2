@@ -6,89 +6,119 @@ import java.util.ArrayList;
 
 public class PlotOverlay {
 
-    private static final int BOX_GAP = 30;
-    
-    public static final int X_OFFSET = 35;
+    public static final int X_OFFSET = 20;
     public static final int Y_OFFSET = 20;
-    
-    private int width = 150;
-    private int height = 250;
     
     private int x = 0;
     private int y = 0;
+    private int width = 0;
+    private int height = 0;
     
     private ArrayList<InputBox> inputs = new ArrayList<InputBox>();
     
     public PlotOverlay() {
-        inputs.add(new InputBox("minX", -400));
-        inputs.add(new InputBox("maxX", 400));
-        inputs.add(new InputBox("minY", -400));
-        inputs.add(new InputBox("maxY", 400));
-        inputs.add(new InputBox("resX", 40));
-        inputs.add(new InputBox("resY", 40));
+        inputs.add(new IntBox("minX", -400));
+        inputs.add(new IntBox("maxX", 400));
+        inputs.add(new IntBox("minY", -400));
+        inputs.add(new IntBox("maxY", 400));
+        inputs.add(new IntBox("resX", 40));
+        inputs.add(new IntBox("resY", 40));
+        inputs.add(new StringBox("file", ""));
+
+        calculateSize();
     }
     
-    public void draw(Graphics g, int x, int y, int activeBox) {
-        this.x = x - X_OFFSET;
-        this.y = y + Y_OFFSET;
-        
+    // calculate width and height based on the input boxes
+    public void calculateSize() {
+        int maxWidth = -1;
+        int totalHeight = 0;
+
+        for (InputBox inputBox : inputs) {
+            if (inputBox.getWidth() + inputBox.getXOffset() + inputBox.getXOffsetRight() > maxWidth) {
+                maxWidth = inputBox.getWidth() + inputBox.getXOffset() + inputBox.getXOffsetRight();
+            }
+            totalHeight += inputBox.getHeight() + 2 * inputBox.getYOffset();
+        }
+
+        width = maxWidth;
+        height = totalHeight;
+    }
+
+    public void draw(Graphics g, int overlayX, int overlayY, int activeBox) {
+        x = overlayX - width - X_OFFSET;
+        y = overlayY + Y_OFFSET;
+
+        // draw the outline
         g.setColor(Color.BLACK);
-        g.drawRect(this.x, this.y, width, height);
+        g.drawRect(x, y, width, height);
+
+        // draw each box
+        int runningY = y;
         for (int i = 0; i < inputs.size(); ++i) {
-            inputs.get(i).draw(g, this.x, this.y + BOX_GAP * i, activeBox == i);
+            InputBox inputBox = inputs.get(i);
+            inputs.get(i).draw(g,
+                    x,
+                    runningY,
+                    activeBox == i);
+            runningY += inputBox.getHeight() + 2 * inputBox.getYOffset();
         }
     }
 
     public int[][] getBoxCoords() {
-        int c[][] = new int[inputs.size()][4];  // x y width height for each input box
-        
+        // x y width height for each input box
+        int c[][] = new int[inputs.size()][4];
+
+        int runningY = y;
         for (int i = 0; i < inputs.size(); ++i) {
-            c[i][0] = x + InputBox.X_OFFSET;
-            c[i][1] = y + BOX_GAP * i + InputBox.Y_OFFSET;
-            c[i][2] = InputBox.WIDTH;
-            c[i][3] = InputBox.HEIGHT;
-        }	
-        
+            InputBox inputBox = inputs.get(i);
+            c[i][0] = x + inputBox.getXOffset();
+            runningY += inputBox.getYOffset();
+            c[i][1] = runningY;
+            c[i][2] = inputBox.getWidth();
+            c[i][3] = inputBox.getHeight();
+            runningY += inputBox.getHeight() + inputBox.getYOffset();
+        }
+
         return c;
     }
-    
-    public void number(int activeBox, int n) {
-        inputs.get(activeBox).number(n);
-    }
-    
-    public void negative(int activeBox) {
-        inputs.get(activeBox).negative();
 
+    public void updateBox(int index, int keyCode) {
+        inputs.get(index).update(keyCode);
     }
-    
-    public void delete(int activeBox) {
-        inputs.get(activeBox).delete();
-    }
-    
+
     public int getMinX() {
-        return inputs.get(0).getValue();
+        return inputs.get(0).getValueInt();
     }
     
     public int getMaxX() {
-        return inputs.get(1).getValue();
+        return inputs.get(1).getValueInt();
     }
     
     public int getMinY() {
-        return inputs.get(2).getValue();
+        return inputs.get(2).getValueInt();
     }
     
     public int getMaxY() {
-        return inputs.get(3).getValue();
+        return inputs.get(3).getValueInt();
     }
     
     public int getResX() {
-        return inputs.get(4).getValue();
+        return inputs.get(4).getValueInt();
     }
     
     public int getResY() {
-        return inputs.get(5).getValue();
+        return inputs.get(5).getValueInt();
+    }
+
+    public String getFile() {
+        return inputs.get(6).getValueString();
     }
     
-    public int getWidth() { return width; }
-    public int getHeight() { return height; }
+    public int getWidth() {
+        return width;
+    }
+    
+    public int getHeight() {
+        return height;
+    }
 }
