@@ -1,4 +1,8 @@
-/bin/
+bin/
 magnets/
 output/
 plot/
+.classpath
+.project
+.settings/
+*.sh
