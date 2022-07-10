@@ -18,7 +18,7 @@ import simulation.Magnet;
 
 public abstract class Plotter {
     
-    private final static int numThreads = 4;
+    private final static int DEFAULT_NUM_THREADS = 4;
 
     private final static int defaultMinX = -400;
     private final static int defaultMaxX = 400;
@@ -36,17 +36,50 @@ public abstract class Plotter {
     
     public static void plot(ArrayList<Magnet> magnets) {
         plot(magnets, defaultMinX, defaultMaxX, defaultMinY, defaultMaxY,
-                defaultResX, defaultResY, defaultFile, defaultVerbose);
+                defaultResX, defaultResY, defaultFile, defaultVerbose, DEFAULT_NUM_THREADS);
     }
     
     public static void plot(ArrayList<Magnet> magnets,
             int minX, int maxX, int minY, int maxY, int resX,
-            int resY, String file, boolean verbose) {
+            int resY, String file, boolean verbose, int numThreads) {
+        plot(magnets, (double) minX, (double) maxX, (double) minY, (double) maxY,
+                resX, resY, file, verbose, numThreads);
+    }
+
+    public static void plot(ArrayList<Magnet> magnets,
+            double minX, double maxX, double minY, double maxY, int resX,
+            int resY, String file, boolean verbose, int numThreads) {
+        // assert correct
+        if (minX >= maxX) {
+            System.out.println("Error: minX >= maxX");
+            System.exit(1);
+        }
+        if (minY >= maxY) {
+            System.out.println("Error: minY >= maxY");
+            System.exit(1);
+        }
+        if (resX < 1) {
+            System.out.println("Error: resX < 1");
+            System.exit(1);
+        }
+        if (resY < 1) {
+            System.out.println("Error: resY < 1");
+            System.exit(1);
+        }
+        if (numThreads < 1) {
+            System.out.println("Error: threads < 1");
+            System.exit(1);
+        }
+        if (numThreads > 32) {
+            System.out.println("Error: threads > 32");
+            System.exit(1);
+        }
+
         long startTime = System.currentTimeMillis();
         
         int numPoints = resX * resY;
-        double gapX = ((double) maxX - minX) / (resX - 1);
-        double gapY = ((double) maxY - minY) / (resY - 1);
+        double gapX = (maxX - minX) / (resX - 1);
+        double gapY = (maxY - minY) / (resY - 1);
         
         // generate points
         double totalPoints[][] = new double[numPoints][2];
@@ -59,7 +92,7 @@ public abstract class Plotter {
         
         // create threads 
         if (verbose) {
-            System.out.printf("creating %d threads\n", numThreads);
+            System.out.printf("Creating %d threads\n", numThreads);
         }
         Generator threadArray[] = new Generator[numThreads];
         for (int i = 0; i < numThreads; ++i) {
@@ -93,7 +126,7 @@ public abstract class Plotter {
         // write data
         PrintWriter writer;
         String filename = String.format("%s_%d_%d_%d_%d_%d_%d",
-                file, minX, maxX, minY, maxY, resX, resY);
+                file, (int) minX, (int) maxX, (int) minY, (int) maxY, resX, resY);
         try {
             writer = new PrintWriter(String.format("output/%s.txt", filename),"UTF-8");
             for (int j = 0; j < numPoints / numThreads; ++j) {
@@ -105,12 +138,13 @@ public abstract class Plotter {
                 writer.println(Arrays.toString(threadArray[i].output[numPoints / numThreads]));
             }
             writer.close();
+
+            System.out.printf("%d points in output/%s.txt\n", numPoints, filename);
         } catch (FileNotFoundException e) {
-            e.printStackTrace();
+            System.out.println("Create directory \"output\" in order to save output points");
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         }
-        System.out.printf("%d points in output/%s.txt\n", numPoints, filename);
         
         // render image
         // assign points to bins
@@ -180,15 +214,16 @@ public abstract class Plotter {
             File f = new File(String.format("plot/%s.png", filename));
             ImageIO.write(bufferedImage, "png", f);
             System.out.printf("Plot at plot/%s.png\n", filename);
+
+            // print info
+            System.out.print("Bins at: ");
+            for (Point p : bins) {
+                System.out.printf("(%d, %d) ", p.x + binSize / 2, p.y + binSize / 2);
+            }
+            System.out.println("");
         } catch (IOException e) {
-            e.printStackTrace();
+            System.out.println("Create directory \"plot\" in order to save plot image");
         }
-        
-        // print info
-        System.out.print("Bins at: ");
-        for (Point p : bins) {
-            System.out.printf("(%d, %d) ", p.x + binSize / 2, p.y + binSize / 2);
-        }
-        System.out.println("");
+        // TODO why is this still printing a stack trace?
     }
 }

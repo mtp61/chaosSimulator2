@@ -48,7 +48,7 @@ public class Magnet implements Serializable {
             System.out.println(
                     String.format("Saved configuration to \"magnets/%s.txt\"", file));
         } catch (FileNotFoundException err) {
-            System.out.println("Create directory \"magnets\"");
+            System.out.println("Create directory \"magnets\" in order to save magnets");
         } catch (Exception err) {
             err.printStackTrace();
         }
@@ -66,7 +66,7 @@ public class Magnet implements Serializable {
             b.close();
             f.close();
 
-            System.out.println("Loaded configuration from \"magnets/magnets.txt\"");
+            System.out.printf("Loaded configuration from \"magnets/%s.txt\"\n", file);
         } catch (FileNotFoundException err) {
             System.out.println(String.format("File \"magnets/%s.txt\" not found", file));
         } catch (Exception err) {

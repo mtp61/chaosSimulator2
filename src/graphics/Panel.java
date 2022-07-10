@@ -155,7 +155,7 @@ public class Panel extends JPanel {
                             overlay.getMinX(), overlay.getMaxX(),
                             overlay.getMinY(), overlay.getMaxY(),
                             overlay.getResX(), overlay.getResY(),
-                            file, true);
+                            file, true, overlay.getThreads());
                     return;
                 // quit
                 case KeyEvent.VK_Q:

@@ -8,7 +8,7 @@ import java.lang.Math;
 
 public class IntBox implements InputBox {
 
-    private final int x_offset = 50;
+    private final int x_offset = 70;
     private final int x_offset_right = 5;
     private final int y_offset = 5;
     private final int width = 60;

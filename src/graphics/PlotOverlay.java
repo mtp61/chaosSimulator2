@@ -23,6 +23,7 @@ public class PlotOverlay {
         inputs.add(new IntBox("maxY", 400));
         inputs.add(new IntBox("resX", 40));
         inputs.add(new IntBox("resY", 40));
+        inputs.add(new IntBox("threads", 4));
         inputs.add(new StringBox("file", ""));
 
         calculateSize();
@@ -110,8 +111,19 @@ public class PlotOverlay {
         return inputs.get(5).getValueInt();
     }
 
+    public int getThreads() {
+        int threads = inputs.get(6).getValueInt();
+        if (threads > 32) {
+            return 32;
+        }
+        if (threads < 1) {
+            return 1;
+        }
+        return threads;
+    }
+
     public String getFile() {
-        return inputs.get(6).getValueString();
+        return inputs.get(7).getValueString();
     }
     
     public int getWidth() {
